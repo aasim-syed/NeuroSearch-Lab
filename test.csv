@@ -1,0 +1,42 @@
+text
+How to optimize faiss for large scale search
+What is product quantization in vector databases
+Difference between IVF and HNSW
+When to use inverted file index for embeddings
+What are semantic embeddings for search
+GPU vs CPU performance in approximate nearest neighbor search
+How transformers generate sentence vectors
+Localized vector search on device inference
+Browser based RAG with WebGPU and WASM embeddings
+Improving recall in approximate vector matching
+Factors that affect latency in semantic search
+When to choose brute force vector search
+Hybrid search combining keyword and semantic signals
+Vector compression tradeoffs for modern RAG systems
+Scaling embeddings with sharding and caching
+Reducing memory footprint in vector DBs
+Batching queries to accelerate retrieval
+ANN evaluation metrics for retrieval systems
+Dimensionality reduction before indexing
+Choosing the right embedding dimension for your dataset
+Edge inference vs cloud retrieval
+Encrypted semantic search and privacy
+Latency benchmarks across IVF PQ configurations
+Dataset preprocessing to improve embedding quality
+Reranking retrieved results with cross encoders
+Query expansion to increase recall
+Detecting nearest neighbors in high dimensional space
+Index maintenance and dynamic insertions
+How cosine similarity differs from Euclidean distance
+Selecting k and nprobe values intelligently
+Building an in browser faiss alternative
+Vector clustering techniques
+Open source vector DB comparisons
+WebGPU acceleration for ANN search
+Semantic cache strategies for LLM apps
+Compressing embeddings without losing semantic meaning
+Chunking long text for RAG pipelines
+Real time semantic matching for chat applications
+Reranking using MLP and scoring layers
+Cross-device vector sync strategies
+LLM assisted vector search tuning

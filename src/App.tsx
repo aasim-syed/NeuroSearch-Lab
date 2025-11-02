@@ -17,44 +17,66 @@ export default function App(){
   const [k,setK]=useState(5);
   const [query,setQuery]=useState("vector compression tradeoffs");
 
-  const { items, setItems } = useCorpus(dim);
+  const { items, setItems, reset } = useCorpus(dim);
   const { status, points, train, run, clear } = useBenchmark();
 
-  const onTrain = async()=>{ await train(items, nlist, m, ks); };
-  const onRun = async(label:string)=>{ await run(items, query, dim, k, nprobe, label); };
+  // Pass args explicitly—don’t rely on async state
+  const onTrain = async (nlistArg = nlist, mArg = m, ksArg = ks) => {
+    await train(items, nlistArg, mArg, ksArg);
+  };
+  const onRun = async (label: string, nprobeArg = nprobe) => {
+    await run(items, query, dim, k, nprobeArg, label);
+  };
+
   const onGrid = async()=>{
     clear();
     const grid = [
-      {m:4,ks:16,nprobe:1},
-      {m:8,ks:16,nprobe:2},
-      {m:8,ks:32,nprobe:2},
-      {m:16,ks:16,nprobe:4},
-      {m:16,ks:32,nprobe:4},
+      {m:4, ks:16, nprobe:1},
+      {m:8, ks:16, nprobe:2},
+      {m:8, ks:32, nprobe:2},
+      {m:16, ks:16, nprobe:4},
+      {m:16, ks:32, nprobe:4},
     ];
-    for(const g of grid){ setM(g.m); setKs(g.ks); setNprobe(g.nprobe); await onTrain(); await onRun(`m=${g.m}, ks=${g.ks}, nprobe=${g.nprobe}`); }
+    for (const g of grid) {
+      await onTrain(nlist, g.m, g.ks);
+      await onRun(`m=${g.m}, ks=${g.ks}, nprobe=${g.nprobe}`, g.nprobe);
+    }
   };
 
-  const onUpload = async(newItems:CorpusItem[])=>{ setItems(newItems); await saveCorpus("default", newItems); };
+  const onUpload = async(newItems:CorpusItem[])=>{
+    await setItems(newItems.map(x => ({ ...x, id: x.id ?? crypto.randomUUID() })));
+    await saveCorpus("default", newItems); // stored by useCorpus anyway; harmless
+  };
+
+  const onReset = async ()=>{
+    await reset();
+    clear();
+    console.log("[reset] storage cleared; change a slider or reload to re-seed");
+  };
 
   return (
     <div className="container">
-      <h1>WebGPU Vector Compression Lab (Frontend‑only)</h1>
+      <h1>WebGPU Vector Compression Lab (Frontend-only)</h1>
       <div className="small">{status}</div>
+
+      <div style={{display:"flex", gap:8, marginTop:8}}>
+        <button className="button ghost" onClick={onReset}>Reset (clear storage)</button>
+      </div>
 
       <div className="row" style={{marginTop:12}}>
         <div className="card">
           <div className="label">Query text</div>
           <input className="input" value={query} onChange={e=>setQuery(e.target.value)} />
-          <div style={{display:"flex", gap:8, marginTop:10}}>
-            <button className="button" onClick={onTrain}>Train IVF + PQ</button>
-            <button className="button secondary" onClick={()=>onRun("custom")} >Run once</button>
+          <div style={{display:"flex", gap:8, marginTop:10, flexWrap:'wrap'}}>
+            <button className="button" onClick={()=>onTrain()}>Train IVF + PQ</button>
+            <button className="button secondary" onClick={()=>onRun("custom")}>Run once</button>
             <button className="button" onClick={onGrid}>Benchmark grid</button>
           </div>
-          <div className="small" style={{marginTop:8}}>Toy 3‑gram embeddings to stay 100% local. Swap to Transformers.js later.</div>
+          <div className="small" style={{marginTop:8}}>Toy 3-gram embeddings to stay 100% local. Train again after changing params.</div>
         </div>
         <div className="card">
           <Controls label="Embedding dimension" value={dim} min={64} max={512} step={32} onChange={setDim} />
-          <Controls label="Top‑k" value={k} min={1} max={20} step={1} onChange={setK} />
+          <Controls label="Top-k" value={k} min={1} max={20} step={1} onChange={setK} />
         </div>
       </div>
 

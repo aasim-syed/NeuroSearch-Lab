@@ -1,0 +1,22 @@
+[
+  {"text": "How to optimize faiss for large scale search"},
+  {"text": "Product quantization for vector compression"},
+  {"text": "Semantic embeddings for retrieval"},
+  {"text": "WebGPU accelerated similarity search"},
+  {"text": "Transformer embeddings on device"},
+  {"text": "Improving recall@k in ANN benchmarks"},
+  {"text": "Dimensionality vs performance tradeoffs"},
+  {"text": "Low latency inverted file index search"},
+  {"text": "Hybrid keyword + semantic search pipelines"},
+  {"text": "Vector compression and PQ codebooks"},
+  {"text": "Browser based vector engine experiments"},
+  {"text": "Latency tuning with IVF and nprobe"},
+  {"text": "Client side RAG system research"},
+  {"text": "Selecting best ANN hyperparameters"},
+  {"text": "Accelerating embeddings with WASM"},
+  {"text": "Local inference vs cloud inference"},
+  {"text": "Batch scoring techniques"},
+  {"text": "Binary quantization vs PQ"},
+  {"text": "Reranking with cross encoders"},
+  {"text": "Storing vectors in IndexedDB"}
+]

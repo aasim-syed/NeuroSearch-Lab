@@ -1,27 +1,68 @@
-import { useEffect, useRef, useState } from "react"; 
-import { hash3gram } from "../lib/embeddings"; 
-import type { CorpusItem } from "../lib/types"; 
-import { saveCorpus, loadCorpus } from "../lib/storage";
+import { useEffect, useState } from "react";
+import { hash3gram } from "../lib/embeddings";
+import type { CorpusItem } from "../lib/types";
+import { saveCorpus, loadCorpus, getDB } from "../lib/storage";
 
-export function useCorpus(dim:number){
-  const [items,setItemsState]=useState<CorpusItem[]>([]);
-  const keyRef=useRef("default");
+/**
+ * Local-first corpus that RE-EMBEDS on `dim` change.
+ * We keep one key "default", but vectors are recomputed whenever `dim` changes.
+ */
+export function useCorpus(dim: number) {
+  const [items, setItems] = useState<CorpusItem[]>([]);
 
-  useEffect(()=>{ (async()=>{
-      const saved = await loadCorpus(keyRef.current);
-      if(saved) setItemsState(saved);
-      else {
-        const base = `vector search fast
+  // load (texts) once, then embed to current `dim`
+  useEffect(() => {
+    (async () => {
+      const saved = await loadCorpus("default");
+      if (saved && saved.length) {
+        // re-embed to current dim
+        const rebaked: CorpusItem[] = saved.map((it) => ({
+          ...it,
+          v: hash3gram(it.text, dim),
+        }));
+        setItems(rebaked);
+        await saveCorpus("default", rebaked);
+        return;
+      }
+
+      // Proper multi-line seed
+      const base = `vector search fast
 product quantization
 inverted index
 webgpu distance compute
-transformers wasm browser
-`.trim().split("\n");
-        const seed:CorpusItem[] = base.map((t,i)=>({ id:`doc_${i}`, text:t, v:hash3gram(t, dim)}));
-        setItemsState(seed); await saveCorpus(keyRef.current, seed);
-      }
-    })(); },[dim]);
+transformers wasm browser`
+        .trim()
+        .split("\n");
 
-  const setItems = async (arr:CorpusItem[])=>{ setItemsState(arr); await saveCorpus(keyRef.current, arr); };
-  return { items, setItems };
+      const seed: CorpusItem[] = base.map((t, i) => ({
+        id: `doc_${i}`,
+        text: t,
+        v: hash3gram(t, dim),
+      }));
+      setItems(seed);
+      await saveCorpus("default", seed);
+    })();
+  }, [dim]);
+
+  // replace all items (upload path); embed for current `dim`
+  const replace = async (rows: { id?: string; text: string }[]) => {
+    const next: CorpusItem[] = rows.map((r, i) => ({
+      id: r.id ?? `doc_${i}`,
+      text: r.text,
+      v: hash3gram(r.text, dim),
+    }));
+    setItems(next);
+    await saveCorpus("default", next);
+  };
+
+  // hard reset storage (used by a Reset button)
+  const reset = async () => {
+    const db = await getDB();
+    await db.clear("corpus");
+    await db.clear("pq");
+    await db.clear("ivf");
+    setItems([]);
+  };
+
+  return { items, setItems: replace, reset };
 }
