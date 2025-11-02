@@ -92,7 +92,7 @@ export default function App() {
 
   return (
     <div className="container">
-      <h1>NeuroSpaceLabs</h1>
+      <h1>NeuroSearchLabs</h1>
       <div className="small">{status}</div>
 
       {/* top actions */}
