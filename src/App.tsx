@@ -56,7 +56,7 @@ export default function App(){
 
   return (
     <div className="container">
-      <h1>WebGPU Vector Compression Lab (Frontend-only)</h1>
+      <h1>NeuroLabs</h1>
       <div className="small">{status}</div>
 
       <div style={{display:"flex", gap:8, marginTop:8}}>
