@@ -87,7 +87,7 @@ h1{
 
 /* Inputs / sliders / buttons share style */
 .input, .slider, .button{
-  width:100%;
+  width:96%;
   border-radius:12px;
   border:1px solid var(--glass-stroke);
   background: rgba(255,255,255,0.05);
