@@ -1,0 +1,38 @@
+# Node modules
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Local environment files
+.env
+.env.*
+!.env.example
+
+# Vite cache
+.vite/
+.vite/deps
+
+# Editor & OS files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# TypeScript build
+*.tsbuildinfo
+
+# Coverage / testing
+coverage/
+
+# Serialized benchmark / debug files (optional from your tool)
+benchmarks.json
+*.cache
