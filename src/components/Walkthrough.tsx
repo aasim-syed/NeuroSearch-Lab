@@ -1,10 +1,11 @@
 import React, { useEffect, useLayoutEffect, useState } from "react";
+import { createPortal } from "react-dom";
 
 export type TourStep = {
   id: string;
   title: string;
   body: string;
-  anchor: string; // CSS selector
+  anchor: string; // CSS selector, e.g. [data-tour="query"]
 };
 
 type Rect = { top:number; left:number; width:number; height:number } | null;
@@ -22,7 +23,6 @@ export function Walkthrough({
   const [rect, setRect] = useState<Rect>(null);
   const step = steps[index];
 
-  // Keep hooks un-conditional; guard inside
   useEffect(() => { if (open) setIndex(0); }, [open]);
 
   useLayoutEffect(() => {
@@ -31,54 +31,55 @@ export function Walkthrough({
       const el = document.querySelector(step.anchor) as HTMLElement | null;
       if (!el) { setRect(null); return; }
       const r = el.getBoundingClientRect();
-      setRect({
-        top: r.top + window.scrollY,
-        left: r.left + window.scrollX,
-        width: r.width,
-        height: r.height,
-      });
-      // Optional: auto-scroll into view if partially hidden
-      // el.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      setRect({ top: r.top, left: r.left, width: r.width, height: r.height }); // viewport coords
     }
     compute();
     const opts = { passive: true } as AddEventListenerOptions;
     window.addEventListener("scroll", compute, opts);
     window.addEventListener("resize", compute, opts);
-    return () => { window.removeEventListener("scroll", compute); window.removeEventListener("resize", compute); };
+    const id = window.setInterval(compute, 150); // keep in sync during layout shifts
+    return () => {
+      window.removeEventListener("scroll", compute);
+      window.removeEventListener("resize", compute);
+      window.clearInterval(id);
+    };
   }, [open, step]);
 
   if (!open || !step || !rect) return null;
 
-  // --- BELOW positioning ---
   const POPOVER_WIDTH = 280;
   const GAP = 8;
-  const top = rect.top + rect.height + GAP;
-  const minLeft = window.scrollX + 8;
-  const maxLeft = window.scrollX + window.innerWidth - POPOVER_WIDTH - 8;
-  const left = Math.max(minLeft, Math.min(rect.left, maxLeft));
 
-  // highlight around anchor
+  // position BELOW target, using viewport coords (fixed)
+  const top = Math.round(rect.top + rect.height + GAP);
+  const minLeft = 8;
+  const maxLeft = Math.max(8, window.innerWidth - POPOVER_WIDTH - 8);
+  const left = Math.round(Math.min(maxLeft, Math.max(minLeft, rect.left)));
+
   const highlight: React.CSSProperties = {
-    position: "absolute",
-    top: rect.top - 4,
-    left: rect.left - 4,
-    width: rect.width + 8,
-    height: rect.height + 8,
+    position: "fixed",
+    top: Math.round(rect.top) - 4,
+    left: Math.round(rect.left) - 4,
+    width: Math.round(rect.width) + 8,
+    height: Math.round(rect.height) + 8,
     borderRadius: 8,
     border: "2px solid #0ea5e9",
-    zIndex: 9998,
+    zIndex: 99998,
     pointerEvents: "none",
   };
 
-  // bubble + arrow
   const popover: React.CSSProperties = {
-    position: "absolute",
+    position: "fixed",
     top, left, width: POPOVER_WIDTH,
-    background: "#fff", color: "#0f172a",
+    background: "#fff",
+    color: "#0f172a",
     border: "1px solid #e2e8f0",
-    borderRadius: 10, padding: "12px 14px",
-    zIndex: 9999, boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+    borderRadius: 10,
+    padding: "12px 14px",
+    zIndex: 99999,
+    boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
   };
+
   const arrowLeft = Math.min(rect.left + 16, left + POPOVER_WIDTH - 24) - left;
   const arrowBorder: React.CSSProperties = {
     position: "absolute", top: -6, left: arrowLeft, width: 0, height: 0,
@@ -93,7 +94,7 @@ export function Walkthrough({
     borderBottom: "5px solid #fff",
   };
 
-  return (
+  const ui = (
     <>
       <div style={highlight} />
       <div style={popover}>
@@ -113,4 +114,7 @@ export function Walkthrough({
       </div>
     </>
   );
+
+  // Render at <body> level so no parent positioning/transform affects it
+  return createPortal(ui, document.body);
 }
